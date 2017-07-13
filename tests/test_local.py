@@ -4,7 +4,7 @@ import asyncio
 import gecaso
 
 
-local_storage = gecaso.LocalCacheStorage()
+local_storage = gecaso.LocalMemoryStorage()
 
 
 @gecaso.cached(local_storage, ttl=5)
@@ -19,14 +19,14 @@ async def long_async_function(time_to_sleep):
     return time_to_sleep
 
 
-def test__on_long_function():
+def test_memory_storage_on_long_function():
     start_time = time.time()
     for i in range(10):
         assert long_function(2) == 2
     assert time.time() - start_time < 5
 
 
-def test__on_long_async_function():
+def test_memory_storage_on_long_async_function():
     loop = asyncio.get_event_loop()
     start_time = time.time()
     for i in range(10):
