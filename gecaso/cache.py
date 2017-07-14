@@ -34,7 +34,7 @@ def pack_to_store(result, ttl):
 
 
 def cached(cache_storage, ttl=None, loop=None):
-    func = dict(self=None, is_async=None)
+    func = dict(self=None)
     loop = loop or asyncio.get_event_loop()
     if isinstance(cache_storage, storage.BaseStorage):
         async_storage = False
@@ -82,14 +82,14 @@ def cached(cache_storage, ttl=None, loop=None):
 
     def wrapper(function):
         func['self'] = function
-        func['is_async'] = inspect.iscoroutinefunction(function)
+        async_function = inspect.iscoroutinefunction(function)
         wrappers = {
             (False, False): ss_function,  # first letter tells if function
             (False, True):  sa_function,  # is asynchronous; second letter
             (True, False):  as_function,  # tells if cache storage is
             (True, True):   aa_function,  # asynchronous.
         }
-        wrapped = wrappers[(func['is_async'], async_storage)]
+        wrapped = wrappers[(async_function, async_storage)]
         return functools.wraps(function)(wrapped)
 
     return wrapper
