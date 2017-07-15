@@ -1,45 +1,56 @@
 import abc
+import pickle
+
+from . import utils
+from . import vfuncs
 
 
-class BaseStorage(metaclass=abc.ABCMeta):
+class DataWrapper:
+    def pack(self, value, **verfuncs):
+        result = utils.Namespace()
+        result.value = value
+        result.verfuncs = [getattr(vfuncs, f)(v) for f, v in verfuncs.items()]
+        return pickle.dumps(result)
+
+    def is_valid(self, result):
+        return all([verfunc(value) for verfunc, value in result.verfuncs])
+
+    def retrieve(self, data):
+        result = pickle.loads(data)
+        if self.is_valid(result):
+            return result.value
+        else:
+            raise KeyError('Cached result didnt pass validation')
+
+
+class BaseStorage(DataWrapper, metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def get(self, key, default=None):
+    def get(self, key):
+        """Must throw KeyError if key is not found"""
         pass
 
     @abc.abstractmethod
-    def set(self, key, value):
-        """It should be possible for value to be of type 'bytes'."""
-        pass
-
-    @abc.abstractmethod
-    def remove(self, key):
+    def set(self, key, value, **verfuncs):
         pass
 
 
-class BaseAsyncStorage(metaclass=abc.ABCMeta):
+class BaseAsyncStorage(DataWrapper, metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    async def get(self, key, default=None):
+    async def get(self, key):
+        """Must throw KeyError if key is not found"""
         pass
 
     @abc.abstractmethod
-    async def set(self, key, value):
-        """It should be possible for value to be of type 'bytes'."""
-        pass
-
-    @abc.abstractmethod
-    async def remove(self, key):
+    async def set(self, key, value, **verfuncs):
         pass
 
 
 class LocalMemoryStorage(BaseStorage):
     def __init__(self):
-        self.storage = dict()
+        self._storage = dict()
 
-    def get(self, key, default=None):
-        return self.storage.get(key, default)
+    def get(self, key):
+        return self.retrieve(self._storage[key])
 
-    def set(self, key, value):
-        self.storage[key] = value
-
-    def remove(self, key):
-        self.storage.pop(key)
+    def set(self, key, value, **verfuncs):
+        self._storage[key] = self.pack(value, **verfuncs)

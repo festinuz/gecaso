@@ -8,16 +8,13 @@ import gecaso
 
 class LocalAsyncMemoryStorage(gecaso.BaseAsyncStorage):
     def __init__(self):
-        self.storage = dict()
+        self._storage = dict()
 
-    async def get(self, key, default=None):
-        return self.storage.get(key, default)
+    async def get(self, key):
+        return self.retrieve(self._storage[key])
 
-    async def set(self, key, value):
-        self.storage[key] = value
-
-    async def remove(self, key):
-        self.storage.pop(key)
+    async def set(self, key, value, **verfuncs):
+        self._storage[key] = self.pack(value, **verfuncs)
 
 
 local_storage = gecaso.LocalMemoryStorage()
@@ -38,7 +35,7 @@ async def long_async_function(time_to_sleep):
 def test_local_sync_function_cache(storage):
     function = gecaso.cached(storage, ttl=5)(long_function)
     start_time = time.time()
-    for i in range(10):
+    for i in range(5):
         assert function(2) == 2
     assert time.time() - start_time < 5
 
@@ -48,6 +45,6 @@ def test_local_async_function_cache(storage):
     function = gecaso.cached(storage, ttl=5)(long_async_function)
     loop = asyncio.get_event_loop()
     start_time = time.time()
-    for i in range(10):
+    for i in range(5):
         assert loop.run_until_complete(function(2)) == 2
     assert time.time() - start_time < 5
