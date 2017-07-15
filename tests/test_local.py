@@ -1,5 +1,6 @@
 import time
 import asyncio
+import inspect
 
 import pytest
 
@@ -21,30 +22,27 @@ local_storage = gecaso.LocalMemoryStorage()
 local_async_storage = LocalAsyncMemoryStorage()
 
 
-def long_function(time_to_sleep):
+def slow_echo(time_to_sleep):
     time.sleep(time_to_sleep)
     return time_to_sleep
 
 
-async def long_async_function(time_to_sleep):
+async def slow_async_echo(time_to_sleep):
     await asyncio.sleep(time_to_sleep)
     return time_to_sleep
 
 
 @pytest.mark.parametrize("storage", [local_storage, local_async_storage])
-def test_local_sync_function_cache(storage):
-    function = gecaso.cached(storage, ttl=5)(long_function)
+@pytest.mark.parametrize("echo_function", [slow_echo, slow_async_echo])
+@pytest.mark.parametrize("argument", [2])
+def test_local_function_cache(storage, echo_function, argument):
+    slow_echo = gecaso.cached(storage)(echo_function)
     start_time = time.time()
-    for i in range(5):
-        assert function(2) == 2
-    assert time.time() - start_time < 5
-
-
-@pytest.mark.parametrize("storage", [local_storage, local_async_storage])
-def test_local_async_function_cache(storage):
-    function = gecaso.cached(storage, ttl=5)(long_async_function)
-    loop = asyncio.get_event_loop()
-    start_time = time.time()
-    for i in range(5):
-        assert loop.run_until_complete(function(2)) == 2
-    assert time.time() - start_time < 5
+    if inspect.iscoroutinefunction(slow_echo):
+        loop = asyncio.get_event_loop()
+        for i in range(5):
+            assert loop.run_until_complete(slow_echo(argument)) == argument
+    else:
+        for i in range(5):
+            assert slow_echo(argument) == argument
+    assert time.time() - start_time < argument*2
