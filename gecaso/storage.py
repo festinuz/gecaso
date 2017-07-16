@@ -1,26 +1,28 @@
 import abc
+import time
 import pickle
 
 from . import utils
-from . import vfuncs
 
 
 class DataWrapper:
-    def pack(self, value, **verfuncs):
+    def pack(self, data, **params):
         result = utils.Namespace()
-        result.value = value
-        result.verfuncs = [getattr(vfuncs, f)(v) for f, v in verfuncs.items()]
+        result.data = data
+        result.params = params
         return pickle.dumps(result)
 
-    def is_valid(self, result):
-        return all([verfunc(value) for verfunc, value in result.verfuncs])
+    def unpack(self, data):
+        return pickle.loads(data)
 
-    def retrieve(self, data):
-        result = pickle.loads(data)
-        if self.is_valid(result):
-            return result.value
+    def verify(self, params):
+        return all([getattr(self, 'vfunc_'+f)(v) for f, v in params.items()])
+
+    def verified_get(self, result):
+        if self.verify(result.params):
+            return result.data
         else:
-            raise KeyError('Cached result didnt pass validation')
+            raise KeyError('Cached result didnt pass verification')
 
 
 class BaseStorage(DataWrapper, metaclass=abc.ABCMeta):
@@ -50,7 +52,13 @@ class LocalMemoryStorage(BaseStorage):
         self._storage = dict()
 
     def get(self, key):
-        return self.retrieve(self._storage[key])
+        result = self.unpack(self._storage[key])
+        return self.verified_get(result)
 
-    def set(self, key, value, **verfuncs):
-        self._storage[key] = self.pack(value, **verfuncs)
+    def set(self, key, value, **params):
+        if params.get('ttl'):
+            params['ttl'] = time.time() + params['ttl']
+        self._storage[key] = self.pack(value, **params)
+
+    def vfunc_ttl(self, time_of_death):
+        return time_of_death > time.time()

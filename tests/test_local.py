@@ -12,10 +12,16 @@ class LocalAsyncMemoryStorage(gecaso.BaseAsyncStorage):
         self._storage = dict()
 
     async def get(self, key):
-        return self.retrieve(self._storage[key])
+        result = self.unpack(self._storage[key])
+        return self.verified_get(result)
 
-    async def set(self, key, value, **verfuncs):
-        self._storage[key] = self.pack(value, **verfuncs)
+    async def set(self, key, value, **params):
+        if params.get('ttl'):
+            params['ttl'] = time.time() + params['ttl']
+        self._storage[key] = self.pack(value, **params)
+
+    def vfunc_ttl(self, time_of_death):
+        return time_of_death > time.time()
 
 
 local_storage = gecaso.LocalMemoryStorage()
