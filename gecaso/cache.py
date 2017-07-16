@@ -22,7 +22,7 @@ def _cached(cache_storage, loop, **params):
                 result = await storage_get(key)
             except KeyError:
                 result = await function(*args, **kwargs)
-                await storage_set(key, result)
+                await storage_set(key, result, **params)
             return result
 
         def sync_wrapped_function(*args, **kwargs):
