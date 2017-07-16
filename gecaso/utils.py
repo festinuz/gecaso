@@ -1,3 +1,4 @@
+import inspect
 import functools
 
 
@@ -13,3 +14,12 @@ def make_key(function, *args, **kwargs):
 
 def wrap(function, wrapped_function):
     return functools.wraps(function)(wrapped_function)
+
+
+def asyncify(function):
+    async def new_function(*args, **kwargs):
+        if inspect.iscoroutinefunction(function):
+            return await function(*args, **kwargs)
+        else:
+            return function(*args, **kwargs)
+    return wrap(function, new_function)

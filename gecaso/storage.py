@@ -36,17 +36,6 @@ class BaseStorage(DataWrapper, metaclass=abc.ABCMeta):
         pass
 
 
-class BaseAsyncStorage(DataWrapper, metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    async def get(self, key):
-        """Must throw KeyError if key is not found"""
-        pass
-
-    @abc.abstractmethod
-    async def set(self, key, value, **params):
-        pass
-
-
 class LocalMemoryStorage(BaseStorage):
     def __init__(self):
         self._storage = dict()

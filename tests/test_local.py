@@ -7,7 +7,7 @@ import pytest
 import gecaso
 
 
-class LocalAsyncMemoryStorage(gecaso.BaseAsyncStorage):
+class LocalAsyncMemoryStorage(gecaso.BaseStorage):
     def __init__(self):
         self._storage = dict()
 
