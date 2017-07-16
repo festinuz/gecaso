@@ -32,7 +32,7 @@ class BaseStorage(DataWrapper, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def set(self, key, value, **verfuncs):
+    def set(self, key, value, **params):
         pass
 
 
@@ -43,7 +43,7 @@ class BaseAsyncStorage(DataWrapper, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    async def set(self, key, value, **verfuncs):
+    async def set(self, key, value, **params):
         pass
 
 
@@ -55,9 +55,10 @@ class LocalMemoryStorage(BaseStorage):
         result = self.unpack(self._storage[key])
         return self.verified_get(result)
 
-    def set(self, key, value, **params):
-        if params.get('ttl'):
-            params['ttl'] = time.time() + params['ttl']
+    def set(self, key, value, ttl=None):
+        params = dict()
+        if ttl:
+            params['ttl'] = time.time() + ttl
         self._storage[key] = self.pack(value, **params)
 
     def vfunc_ttl(self, time_of_death):
