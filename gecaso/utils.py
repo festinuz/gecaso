@@ -16,6 +16,12 @@ def wrap(function, wrapped_function):
     return functools.wraps(function)(wrapped_function)
 
 
+def syncify(loop, async_function):
+    def new_function(*args, **kwargs):
+        return loop.run_until_complete(async_function(*args, **kwargs))
+    return wrap(async_function, new_function)
+
+
 def asyncify(function):
     async def new_function(*args, **kwargs):
         if inspect.iscoroutinefunction(function):

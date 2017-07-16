@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 
 from . import utils
 from . import storage
@@ -28,6 +29,9 @@ def _cached(cache_storage, loop, **params):
     def wrapper(func):
         nonlocal function
         function = utils.asyncify(func)
-        return utils.wrap(function, wrapped_function)
+        if inspect.iscoroutinefunction(func):
+            return utils.wrap(function, wrapped_function)
+        else:
+            return utils.wrap(function, utils.syncify(loop, wrapped_function))
 
     return wrapper
