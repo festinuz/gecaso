@@ -13,7 +13,7 @@ class LocalAsyncMemoryStorage(gecaso.BaseStorage):
 
     async def get(self, key):
         value, params = self.unpack(self._storage[key])
-        return self.verified_get(value, params)
+        return self.verified_get(value, **params)
 
     async def set(self, key, value, ttl=None):
         params = dict()

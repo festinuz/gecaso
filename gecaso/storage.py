@@ -23,7 +23,7 @@ class BaseStorage(metaclass=abc.ABCMeta):
         result = pickle.loads(value)
         return result.value, result.params
 
-    def verified_get(self, value, params):
+    def verified_get(self, value, **params):
         if all([getattr(self, 'vfunc_'+f)(v) for f, v in params.items()]):
             return value
         else:
@@ -36,7 +36,7 @@ class LocalMemoryStorage(BaseStorage):
 
     def get(self, key):
         value, params = self.unpack(self._storage[key])
-        return self.verified_get(value, params)
+        return self.verified_get(value, **params)
 
     def set(self, key, value, ttl=None):
         params = dict()
