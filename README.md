@@ -33,6 +33,12 @@ def long_and_boring_function(time_to_sleep):
     return f'I have slept for {time_to_sleep} second(s)!'
 ```
 
+## Installation
+Install gecaso with pip:
+```
+    pip install gecaso
+```
+
 ## Usage Guide
 ##### Gecaso was created to be a simple solution that can be easily expanded to cover any needs of its users. Below is everything there is to know about using Gecaso. As such, there are only two objects that you need to know:
 
@@ -42,9 +48,9 @@ This function is a wrapper that helps to set up cache for any synchronus or asyn
 #### 2) "BaseStorage" class
 Any storage provided to "cached" function shoud be inherited from this class. Base storage has 5 methods.
 
-* **get(self, key)**:  Abstract method that should be overriden. MUST raise KeyError if key is not present in storage. If data was packed using **pack** method before being stored, it must be unpacked using **unpack** method.
+* **get(self, key)**:  Abstract method that should be overriden. Can be synchronus or asynchronous. MUST raise KeyError if key is not present in storage. If data was packed using **pack** method before being stored, it must be unpacked using **unpack** method.
 
-* **set(self, key, value, \*\*params)**: Abstract method that should be overriden. It is recomended to pack provided value using **pack** method before storing it in storage.
+* **set(self, key, value, \*\*params)**: Abstract method that should be overriden. Can be synchronus or asynchronous. It is recomended to pack provided value using **pack** method before storing it in storage.
 
 * **pack(self, value, \*\*params)**: Returns representation of object with fields named *data* and *params* as bytes object.
 
