@@ -7,17 +7,18 @@ import pytest
 import gecaso
 
 
-class LocalAsyncMemoryStorage(gecaso.BaseAsyncStorage):
+class LocalAsyncMemoryStorage(gecaso.BaseStorage):
     def __init__(self):
         self._storage = dict()
 
     async def get(self, key):
-        result = self.unpack(self._storage[key])
-        return self.verified_get(result)
+        value, params = self.unpack(self._storage[key])
+        return self.verified_get(value, **params)
 
-    async def set(self, key, value, **params):
-        if params.get('ttl'):
-            params['ttl'] = time.time() + params['ttl']
+    async def set(self, key, value, ttl=None):
+        params = dict()
+        if ttl:
+            params['ttl'] = time.time() + ttl
         self._storage[key] = self.pack(value, **params)
 
     def vfunc_ttl(self, time_of_death):

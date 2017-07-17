@@ -5,27 +5,7 @@ import pickle
 from . import utils
 
 
-class DataWrapper:
-    def pack(self, data, **params):
-        result = utils.Namespace()
-        result.data = data
-        result.params = params
-        return pickle.dumps(result)
-
-    def unpack(self, data):
-        return pickle.loads(data)
-
-    def verify(self, params):
-        return all([getattr(self, 'vfunc_'+f)(v) for f, v in params.items()])
-
-    def verified_get(self, result):
-        if self.verify(result.params):
-            return result.data
-        else:
-            raise KeyError('Cached result didnt pass verification')
-
-
-class BaseStorage(DataWrapper, metaclass=abc.ABCMeta):
+class BaseStorage(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get(self, key):
         """Must throw KeyError if key is not found"""
@@ -35,16 +15,19 @@ class BaseStorage(DataWrapper, metaclass=abc.ABCMeta):
     def set(self, key, value, **params):
         pass
 
+    def pack(self, value, **params):
+        result = utils.Namespace(value=value, params=params)
+        return pickle.dumps(result)
 
-class BaseAsyncStorage(DataWrapper, metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    async def get(self, key):
-        """Must throw KeyError if key is not found"""
-        pass
+    def unpack(self, value):
+        result = pickle.loads(value)
+        return result.value, result.params
 
-    @abc.abstractmethod
-    async def set(self, key, value, **params):
-        pass
+    def verified_get(self, value, **params):
+        if all([getattr(self, 'vfunc_'+f)(v) for f, v in params.items()]):
+            return value
+        else:
+            raise KeyError('Cached result didnt pass verification')
 
 
 class LocalMemoryStorage(BaseStorage):
@@ -52,8 +35,8 @@ class LocalMemoryStorage(BaseStorage):
         self._storage = dict()
 
     def get(self, key):
-        result = self.unpack(self._storage[key])
-        return self.verified_get(result)
+        value, params = self.unpack(self._storage[key])
+        return self.verified_get(value, **params)
 
     def set(self, key, value, ttl=None):
         params = dict()
