@@ -7,7 +7,9 @@ setup(
   author = 'Michael Toporkov',
   author_email = 'festinuz@gmail.com',
   url = 'https://github.com/festinuz/gecaso',
-  download_url = f'{url}/archive/{version}.tar.gz',
+  download_url = 'https://github.com/festinuz/gecaso/archive/0.1.1.tar.gz',
   keywords = ['cache', 'caching'],
+  license='MIT',
   classifiers = [],
+  python_requires='>=3.5, <4'
 )
