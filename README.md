@@ -38,6 +38,7 @@ Install gecaso with pip:
 ```
     pip install gecaso
 ```
+Note that at the time, gecaso only supports versions of python that are >=3.5
 
 ## Usage Guide
 ##### Gecaso was created to be a simple solution that can be easily expanded to cover any needs of its users. Below is everything there is to know about using Gecaso. As such, there are only two objects that you need to know:
