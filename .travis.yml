@@ -1,0 +1,16 @@
+language: python
+python:
+- '3.5'
+- '3.6'
+- 3.6-dev
+- 3.7-dev
+- nightly
+install: pip install -r requirements.txt
+script: python -m pytest
+deploy:
+  provider: pypi
+  user: festinuz
+  password:
+    secure: arx2X7H7MG+G2FQnOAqG5MuI9WhGOlLZcubjnkLgtbxn8fZXZyw8UQV/w8zkfHSmKCF1DPBfhiCyQcJKT6pGJ+a5S6TnG0xIyF8RHTK5ykI9zddVFTgfagu1u2FLy0BPddeVgfNKD26YEyk4vK5Ab3KmUtgcwTPu+/pX4pJ+gzHBv68f7wN4h/zR3XpJC4tleS+PqOnEO1Io4J8L6d1DhatRLa7NE9Em604Mso7EPKwC7IrroMHO2QG/BZZTRG9fApVHwezEf4rZZygvrHfSA4o03wavfqcxh8SNi9M/9hjVXxtqawUhurvHF/HTfrfNtal0dFpEQbnOte0fuEM4Za38ZSb7gerCNXtqjaVq5X/WaOfgXDiZV2lFniR0ZH9wizKji7HL4lCqmunKCEHlcBk5R3PThnnU3wM8QYs1oOk21p+T1cXe1IvyPcuLfe1VHdxT870beTU6sgppEOqyZI2gh/jWJsbQVNP+Yy7JGOAP3usde61xg94MECv2flNFPXWHZ3nVyYAzNb5KMMEaWuGTz5r6NADS+qu6G4iKwwjP4VljgcdMLu8R1qFmKxaCpR0nv7JTRM4V/GnYzLB7hJygRQTmNY4qHTwfBveo4RLbQINibb+FY4qVodcv+mxQvbby2fU486p7nm6MoRBPaSoctBLLkmvc/aKqQb1Jk3k=
+  on:
+    tags: true
