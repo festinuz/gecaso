@@ -5,6 +5,15 @@ from . import storage
 
 
 def cached(cache_storage, loop=None, **params):
+    """ Wraps function to cache its value in cache_storage.
+
+    Positional arguments:
+    cache_storage -- subclass of gecaso.BaseStorage used to store cached data
+
+    Keyword arguments:
+    loop -- instance of event loop. asyncio.get_event_loop called otherwise
+    **params -- passed to cache_storage.set each time its called
+    """
     loop = loop or asyncio.get_event_loop()
     if not isinstance(cache_storage, storage.BaseStorage):
         raise ValueError('Provided storage is not subclass of base storage')
