@@ -15,6 +15,10 @@ class BaseStorage(metaclass=abc.ABCMeta):
     def set(self, key, value, **params):
         pass
 
+    @abc.abstractmethod
+    def remove(self, *keys):
+        pass
+
     def pack(self, value, **params):
         result = utils.Namespace(value=value, params=params)
         return pickle.dumps(result)
@@ -43,6 +47,10 @@ class LocalMemoryStorage(BaseStorage):
         if ttl:
             params['ttl'] = time.time() + ttl
         self._storage[key] = self.pack(value, **params)
+
+    def remove(self, *keys):
+        for key in keys:
+            self._storage.pop(key, None)
 
     def vfunc_ttl(self, time_of_death):
         return time_of_death > time.time()
