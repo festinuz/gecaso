@@ -21,6 +21,10 @@ def is_async_function(function):
 
 
 def asyncify(function):
+    """Wraps function. If function is asynchrounous, it is not changed.
+    If function is synchronous, returns asynchrounous function which calls
+    synchronous function inside. This function allows to write code that uses
+    sync/async functions in the same manner: as async functions."""
     async def new_function(*args, **kwargs):
         if is_async_function(function):
             return await function(*args, **kwargs)
