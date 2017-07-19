@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-version = '0.1.2'
+version = '0.2.0'
 url = 'https://github.com/festinuz/gecaso'
 download_url = url + '/archive/' + version + '.tar.gz'
 

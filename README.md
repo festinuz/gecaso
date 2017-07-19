@@ -1,8 +1,23 @@
 # Gecaso
 
+![master branch status](https://api.travis-ci.org/festinuz/gecaso.svg?branch=master)
+
 Gecaso provides you with the tools that help with creating cache for your specific task.
 
-### Example
+### Examples
+
+#### Using default gecaso storages
+```python
+import gecaso
+
+
+@gecaso.cached(LRUStorage(maxsize=16), ttl=100)
+def long_and_boring_function(time_to_sleep):
+    time.sleep(time_to_sleep)
+    return f'I have slept for {time_to_sleep} second(s)!'
+```
+
+#### Creating new storage to fit your task
 Lets say you want to cache the result of some of your functions using Redis. All you need to do is write a simple class in which you specify the steps for setting and getting data from redis.
 
 1) Create a Redis storage:
@@ -21,6 +36,9 @@ class RedisStorage(gecaso.BaseStorage):
 
     def set(self, key, value, **params):
         self._storage[key] = self.pack(value, **params)
+
+    def remove(self, *keys):
+        self._storage.remove(*keys)
 
 redis_storage = RedisStorage('valid_redis_url')
 ```
@@ -47,11 +65,13 @@ Note that at the time, gecaso only supports versions of python that are >=3.5
 This function is a wrapper that helps to set up cache for any synchronus or asynchronous function. It takes single positional argument, which must be an instance of class that is inherited from **BaseStorage**. It can also optionally be provided with a keyword argument **loop** which must be an instance of an event loop. Any keyword arguments provided besides **loop** will be passed to the **set** method of storage instance whenever it is being called.
 
 #### 2) "BaseStorage" class
-Any storage provided to "cached" function shoud be inherited from this class. Base storage has 5 methods.
+Any storage provided to "cached" function shoud be inherited from this class. Base storage has 6 methods.
 
 * **get(self, key)**:  Abstract method that should be overriden. Can be synchronus or asynchronous. MUST raise KeyError if key is not present in storage. If data was packed using **pack** method before being stored, it must be unpacked using **unpack** method.
 
 * **set(self, key, value, \*\*params)**: Abstract method that should be overriden. Can be synchronus or asynchronous. It is recomended to pack provided value using **pack** method before storing it in storage.
+
+* **remove(self, \*keys)**: Abstract method that should be overriden. Should delete every key that is passed in *keys* parameter and exisits in storage.
 
 * **pack(self, value, \*\*params)**: Returns representation of object with fields named *data* and *params* as bytes object.
 
@@ -75,7 +95,7 @@ class LocalMemoryStorage(gecaso.BaseStorage):
         self._storage = dict()  # Python's dict is a nice basic storage of data
 ```
 
-2) Override **set** and **get** methods of gecaso.BaseStorage:
+2) Override **set**, **get** and **remove** methods of gecaso.BaseStorage:
 ```python
     def set(self, key, value, ttl=None):  # We dont want any additional parameters besides time to live
         params = dict()
@@ -87,6 +107,10 @@ class LocalMemoryStorage(gecaso.BaseStorage):
         self.data = self._storage[key]  # If key is not present this will raise KeyError
         value, params = self.unpack(self._storage[key])  # params can optionally contain ttl
         return self.verified_get(value, **params)  # Using BaseStorage.verified_get method to verify ttl
+
+    def remove(self, *keys):
+        for key in keys:
+            self._storage.pop(key, None)  # Not going to throw error if some of the keys do not exists
 ```
 At this point the get method wont work properly because we called **verified_get** at the end of it. This method tries to call class method for every parameter it got and will break since we are trying to pass it our **ttl** parameter but it cant find the verifying function that this parameter should represent.
 
