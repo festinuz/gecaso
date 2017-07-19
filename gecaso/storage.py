@@ -6,6 +6,9 @@ from . import utils
 
 
 class BaseStorage(metaclass=abc.ABCMeta):
+    """Any storage that is to be passed to 'cache' wrapper should be inherited
+    from this class.
+    """
     @abc.abstractmethod
     def get(self, key):
         """Must throw KeyError if key is not found"""
@@ -20,14 +23,24 @@ class BaseStorage(metaclass=abc.ABCMeta):
         pass
 
     def pack(self, value, **params):
+        """Packs value and methods into a object which is then converted to
+        bytes using pickle library. Used to simplify storaging because bytes
+        can bestored almost anywhere.
+        """
         result = utils.Namespace(value=value, params=params)
         return pickle.dumps(result)
 
     def unpack(self, value):
+        """Unpacks bytes object packed with 'pack' method. Returns packed value
+        and parameters.
+        """
         result = pickle.loads(value)
         return result.value, result.params
 
     def verified_get(self, value, **params):
+        """Given value and params, returns value if all methods called from
+        params (method name is assumed as 'vfunc_PARAMNAME' and argument is
+        value of param) return 'True'; Else raises KeyError."""
         if all([getattr(self, 'vfunc_'+f)(v) for f, v in params.items()]):
             return value
         else:
@@ -57,6 +70,11 @@ class LocalMemoryStorage(BaseStorage):
 
 
 class LRUStorage(BaseStorage):
+    """Storage that provides LRUCache functionality when used with 'cached'
+    wrapper. If 'storage' argument is not provided, LocalMemoryStorage is used
+    as default substorage. Any provided storage is expected to be inherited
+    from BaseStorage.
+    """
     class Node:
         def __init__(self, next_node=None, key=None):
             if next_node:
