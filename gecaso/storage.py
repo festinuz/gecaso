@@ -99,7 +99,8 @@ class LRUStorage(BaseStorage):
         self._nodes[key] = LRUStorage.Node(self._head, key)
         self._head = self._nodes[key]
 
-    async def remove(self, key):
-        node = self._nodes.pop(key)
-        node.delete()
-        await self.storage_remove(key)
+    async def remove(self, *keys):
+        for key in keys:
+            node = self._nodes.pop(key)
+            node.delete()
+        await self.storage_remove(*keys)
