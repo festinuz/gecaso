@@ -10,16 +10,16 @@ class BaseStorage(metaclass=abc.ABCMeta):
     from this class.
     """
     @abc.abstractmethod
-    def get(self, key):
+    async def get(self, key):
         """Must throw KeyError if key is not found"""
         pass
 
     @abc.abstractmethod
-    def set(self, key, value, **params):
+    async def set(self, key, value, **params):
         pass
 
     @abc.abstractmethod
-    def remove(self, *keys):
+    async def remove(self, *keys):
         pass
 
     def pack(self, value, **params):
@@ -51,17 +51,17 @@ class LocalMemoryStorage(BaseStorage):
     def __init__(self):
         self._storage = dict()
 
-    def get(self, key):
+    async def get(self, key):
         value, params = self.unpack(self._storage[key])
         return self.verified_get(value, **params)
 
-    def set(self, key, value, ttl=None):
+    async def set(self, key, value, ttl=None):
         params = dict()
         if ttl:
             params['ttl'] = time.time() + ttl
         self._storage[key] = self.pack(value, **params)
 
-    def remove(self, *keys):
+    async def remove(self, *keys):
         for key in keys:
             self._storage.pop(key, None)
 
@@ -97,14 +97,11 @@ class LRUStorage(BaseStorage):
         self._nodes = dict()
         self._maxsize = maxsize
         self._head = LRUStorage.Node()  # This empty node will always be last
-        self.storage_set = utils.asyncify(self._storage.set)
-        self.storage_get = utils.asyncify(self._storage.get)
-        self.storage_remove = utils.asyncify(self._storage.remove)
 
     async def get(self, key):
         node = self._nodes.pop(key)  # Throws KeyError on failure
         node.delete()
-        value = await self.storage_get(key)  # Throws KeyError on failure
+        value = await self._storage.get(key)  # Throws KeyError on failure
         self._nodes[key] = LRUStorage.Node(self._head, key)
         self._head = self._nodes[key]
         return value
@@ -113,7 +110,7 @@ class LRUStorage(BaseStorage):
         if len(self._nodes) > self._maxsize:
             last_node = self._head.prev.prev  # skipping over empty node
             await self.remove(last_node.key)
-        await self.storage_set(key, value, **params)
+        await self._storage.set(key, value, **params)
         self._nodes[key] = LRUStorage.Node(self._head, key)
         self._head = self._nodes[key]
 
@@ -121,4 +118,4 @@ class LRUStorage(BaseStorage):
         for key in keys:
             node = self._nodes.pop(key)
             node.delete()
-        await self.storage_remove(*keys)
+        await self._storage.remove(*keys)

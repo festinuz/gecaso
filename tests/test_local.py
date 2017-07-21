@@ -7,30 +7,7 @@ import pytest
 import gecaso
 
 
-class LocalAsyncMemoryStorage(gecaso.BaseStorage):
-    def __init__(self):
-        self._storage = dict()
-
-    async def get(self, key):
-        value, params = self.unpack(self._storage[key])
-        return self.verified_get(value, **params)
-
-    async def set(self, key, value, ttl=None):
-        params = dict()
-        if ttl:
-            params['ttl'] = time.time() + ttl
-        self._storage[key] = self.pack(value, **params)
-
-    async def remove(self, *keys):
-        for key in keys:
-            self._storage.pop(key, None)
-
-    def vfunc_ttl(self, time_of_death):
-        return time_of_death > time.time()
-
-
 local_storage = gecaso.LocalMemoryStorage()
-local_async_storage = LocalAsyncMemoryStorage()
 
 
 def slow_echo(time_to_sleep):
@@ -43,7 +20,7 @@ async def slow_async_echo(time_to_sleep):
     return time_to_sleep
 
 
-@pytest.mark.parametrize("storage", [local_storage, local_async_storage])
+@pytest.mark.parametrize("storage", [local_storage])
 @pytest.mark.parametrize("echo_function", [slow_echo, slow_async_echo])
 @pytest.mark.parametrize("argument", [2])
 def test_local_function_cache(storage, echo_function, argument):
