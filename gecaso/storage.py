@@ -1,6 +1,5 @@
 import abc
 import time
-import pickle
 
 from . import utils
 
@@ -22,44 +21,23 @@ class BaseStorage(metaclass=abc.ABCMeta):
     async def remove(self, *keys):
         pass
 
-    def pack(self, value, **params):
-        """Packs value and methods into a object which is then converted to
-        bytes using pickle library. Used to simplify storaging because bytes
-        can bestored almost anywhere.
-        """
-        result = utils.Namespace(value=value, params=params)
-        return pickle.dumps(result)
-
-    def unpack(self, value):
-        """Unpacks bytes object packed with 'pack' method. Returns packed value
-        and parameters.
-        """
-        result = pickle.loads(value)
-        return result.value, result.params
-
-    def verified_get(self, value, **params):
-        """Given value and params, returns value if all methods called from
-        params (method name is assumed as 'vfunc_PARAMNAME' and argument is
-        value of param) return 'True'; Else raises KeyError."""
-        if all([getattr(self, 'vfunc_'+f)(v) for f, v in params.items()]):
-            return value
-        else:
-            raise KeyError('Cached result didnt pass verification')
-
 
 class LocalMemoryStorage(BaseStorage):
     def __init__(self):
         self._storage = dict()
 
     async def get(self, key):
-        value, params = self.unpack(self._storage[key])
-        return self.verified_get(value, **params)
+        value, params = utils.unpack(self._storage[key])
+        if all([getattr(self, 'vfunc_'+f)(v) for f, v in params.items()]):
+            return value
+        else:
+            raise KeyError('Cached result didnt pass verification')
 
     async def set(self, key, value, ttl=None):
         params = dict()
         if ttl:
             params['ttl'] = time.time() + ttl
-        self._storage[key] = self.pack(value, **params)
+        self._storage[key] = utils.pack(value, **params)
 
     async def remove(self, *keys):
         for key in keys:
