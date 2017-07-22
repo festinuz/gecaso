@@ -1,6 +1,5 @@
 import abc
 import time
-import pickle
 
 from . import utils
 
@@ -10,58 +9,37 @@ class BaseStorage(metaclass=abc.ABCMeta):
     from this class.
     """
     @abc.abstractmethod
-    def get(self, key):
+    async def get(self, key):
         """Must throw KeyError if key is not found"""
         pass
 
     @abc.abstractmethod
-    def set(self, key, value, **params):
+    async def set(self, key, value, **params):
         pass
 
     @abc.abstractmethod
-    def remove(self, *keys):
+    async def remove(self, *keys):
         pass
 
-    def pack(self, value, **params):
-        """Packs value and methods into a object which is then converted to
-        bytes using pickle library. Used to simplify storaging because bytes
-        can bestored almost anywhere.
-        """
-        result = utils.Namespace(value=value, params=params)
-        return pickle.dumps(result)
 
-    def unpack(self, value):
-        """Unpacks bytes object packed with 'pack' method. Returns packed value
-        and parameters.
-        """
-        result = pickle.loads(value)
-        return result.value, result.params
+class MemoryStorage(BaseStorage):
+    def __init__(self):
+        self._storage = dict()
 
-    def verified_get(self, value, **params):
-        """Given value and params, returns value if all methods called from
-        params (method name is assumed as 'vfunc_PARAMNAME' and argument is
-        value of param) return 'True'; Else raises KeyError."""
+    async def get(self, key):
+        value, params = utils.unpack(self._storage[key])
         if all([getattr(self, 'vfunc_'+f)(v) for f, v in params.items()]):
             return value
         else:
             raise KeyError('Cached result didnt pass verification')
 
-
-class LocalMemoryStorage(BaseStorage):
-    def __init__(self):
-        self._storage = dict()
-
-    def get(self, key):
-        value, params = self.unpack(self._storage[key])
-        return self.verified_get(value, **params)
-
-    def set(self, key, value, ttl=None):
+    async def set(self, key, value, ttl=None):
         params = dict()
         if ttl:
             params['ttl'] = time.time() + ttl
-        self._storage[key] = self.pack(value, **params)
+        self._storage[key] = utils.pack(value, **params)
 
-    def remove(self, *keys):
+    async def remove(self, *keys):
         for key in keys:
             self._storage.pop(key, None)
 
@@ -71,7 +49,7 @@ class LocalMemoryStorage(BaseStorage):
 
 class LRUStorage(BaseStorage):
     """Storage that provides LRUCache functionality when used with 'cached'
-    wrapper. If 'storage' argument is not provided, LocalMemoryStorage is used
+    wrapper. If 'storage' argument is not provided, MemoryStorage is used
     as default substorage. Any provided storage is expected to be inherited
     from BaseStorage.
     """
@@ -93,18 +71,15 @@ class LRUStorage(BaseStorage):
             self.next.prev = self.prev
 
     def __init__(self, storage=None, maxsize=128):
-        self._storage = storage or LocalMemoryStorage()
+        self._storage = storage or MemoryStorage()
         self._nodes = dict()
         self._maxsize = maxsize
         self._head = LRUStorage.Node()  # This empty node will always be last
-        self.storage_set = utils.asyncify(self._storage.set)
-        self.storage_get = utils.asyncify(self._storage.get)
-        self.storage_remove = utils.asyncify(self._storage.remove)
 
     async def get(self, key):
         node = self._nodes.pop(key)  # Throws KeyError on failure
         node.delete()
-        value = await self.storage_get(key)  # Throws KeyError on failure
+        value = await self._storage.get(key)  # Throws KeyError on failure
         self._nodes[key] = LRUStorage.Node(self._head, key)
         self._head = self._nodes[key]
         return value
@@ -113,7 +88,7 @@ class LRUStorage(BaseStorage):
         if len(self._nodes) > self._maxsize:
             last_node = self._head.prev.prev  # skipping over empty node
             await self.remove(last_node.key)
-        await self.storage_set(key, value, **params)
+        await self._storage.set(key, value, **params)
         self._nodes[key] = LRUStorage.Node(self._head, key)
         self._head = self._nodes[key]
 
@@ -121,4 +96,4 @@ class LRUStorage(BaseStorage):
         for key in keys:
             node = self._nodes.pop(key)
             node.delete()
-        await self.storage_remove(*keys)
+        await self._storage.remove(*keys)

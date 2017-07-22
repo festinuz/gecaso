@@ -21,17 +21,14 @@ def cached(cache_storage, loop=None, **params):
 
 
 def _cached(cache_storage, loop, **params):
-    storage_get = utils.asyncify(cache_storage.get)
-    storage_set = utils.asyncify(cache_storage.set)
-
     def wrapper(function):
         async def wrapped_function(*args, **kwargs):
             key = utils.make_key(function, *args, **kwargs)
             try:
-                result = await storage_get(key)
+                result = await cache_storage.get(key)
             except KeyError:
                 result = await function(*args, **kwargs)
-                await storage_set(key, result, **params)
+                await cache_storage.set(key, result, **params)
             return result
 
         def sync_wrapped_function(*args, **kwargs):
