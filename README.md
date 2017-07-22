@@ -1,6 +1,6 @@
 # Gecaso
 
-![master branch status](https://api.travis-ci.org/festinuz/gecaso.svg?branch=master)
+![PyPI version](https://badge.fury.io/py/gecaso.svg)](https://badge.fury.io/py/gecaso) ![master branch status](https://api.travis-ci.org/festinuz/gecaso.svg?branch=master)
 
 Gecaso provides you with the tools that help with creating cache for your specific task.
 
