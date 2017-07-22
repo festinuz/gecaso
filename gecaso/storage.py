@@ -22,7 +22,7 @@ class BaseStorage(metaclass=abc.ABCMeta):
         pass
 
 
-class LocalMemoryStorage(BaseStorage):
+class MemoryStorage(BaseStorage):
     def __init__(self):
         self._storage = dict()
 
@@ -49,7 +49,7 @@ class LocalMemoryStorage(BaseStorage):
 
 class LRUStorage(BaseStorage):
     """Storage that provides LRUCache functionality when used with 'cached'
-    wrapper. If 'storage' argument is not provided, LocalMemoryStorage is used
+    wrapper. If 'storage' argument is not provided, MemoryStorage is used
     as default substorage. Any provided storage is expected to be inherited
     from BaseStorage.
     """
@@ -71,7 +71,7 @@ class LRUStorage(BaseStorage):
             self.next.prev = self.prev
 
     def __init__(self, storage=None, maxsize=128):
-        self._storage = storage or LocalMemoryStorage()
+        self._storage = storage or MemoryStorage()
         self._nodes = dict()
         self._maxsize = maxsize
         self._head = LRUStorage.Node()  # This empty node will always be last

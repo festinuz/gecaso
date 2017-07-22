@@ -17,7 +17,7 @@ async def slow_async_echo(time_to_sleep):
     return time_to_sleep
 
 
-local_storage = gecaso.LocalMemoryStorage()
+local_storage = gecaso.MemoryStorage()
 
 
 @pytest.mark.parametrize("storage", [local_storage])

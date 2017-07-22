@@ -7,7 +7,7 @@ import pytest
 import gecaso
 
 
-local_storage = gecaso.LocalMemoryStorage()
+local_storage = gecaso.MemoryStorage()
 
 
 def slow_echo(time_to_sleep):
