@@ -80,7 +80,7 @@ Any storage provided to "cached" function should be inherited from this class. B
 * **gecaso.unpack(value)**: Unpacks bytes object that was packed with **pack** method and returns *tuple(data, params)*.
 
 
-#### Storages provided by gecaso library
+#### 4) Storages provided by gecaso library
 * **gecaso.MemoryStorage** storages all the data in RAM. Can be used as a default storage.
 * **gecaso.LRUStorage** is a simplified implementation that provides LRU cache functionality. Storage passed to its *\_\_init\_\_()* method will be used used to store values. This effectively allows to wrap any preexisting storage in *gecaso.LRUStorage* to get LRU cache functionality for that storage.
 
