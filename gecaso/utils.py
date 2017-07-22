@@ -1,3 +1,4 @@
+import pickle
 import inspect
 import functools
 
@@ -31,3 +32,20 @@ def asyncify(function):
         else:
             return function(*args, **kwargs)
     return wrap(function, new_function)
+
+
+def pack(value, **params):
+    """Packs value and params into a object which is then converted to
+    bytes using pickle library. Is used to simplify storaging because bytes
+    can bestored almost anywhere.
+    """
+    result = Namespace(value=value, params=params)
+    return pickle.dumps(result)
+
+
+def unpack(value):
+    """Unpacks bytes object packed with 'pack' function. Returns packed value
+    and parameters.
+    """
+    result = pickle.loads(value)
+    return result.value, result.params
