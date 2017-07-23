@@ -22,12 +22,18 @@ def cached(cache_storage, loop=None, **params):
 
 def _cached(cache_storage, loop, **params):
     def wrapper(function):
+        current_calls = dict()
+
         async def wrapped_function(*args, **kwargs):
             key = utils.make_key(function, *args, **kwargs)
             try:
                 result = await cache_storage.get(key)
             except KeyError:
-                result = await function(*args, **kwargs)
+                if not current_calls.get(key):
+                    future = asyncio.ensure_future(function(*args, **kwargs))
+                    current_calls[key] = future
+                result = await current_calls[key]
+                current_calls.pop(key, None)
                 await cache_storage.set(key, result, **params)
             return result
 
