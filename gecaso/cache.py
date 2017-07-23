@@ -30,7 +30,8 @@ def _cached(cache_storage, loop, **params):
                 result = await cache_storage.get(key)
             except KeyError:
                 if not current_calls.get(key):
-                    future = asyncio.ensure_future(function(*args, **kwargs))
+                    future = asyncio.ensure_future(function(*args, **kwargs),
+                                                   loop=loop)
                     current_calls[key] = future
                 result = await current_calls[key]
                 current_calls.pop(key, None)
