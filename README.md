@@ -31,11 +31,11 @@ class RedisStorage(gecaso.BaseStorage):
         self._storage = redis.from_url(redis_url)
 
     async def get(self, key):
-        value, params = self.unpack(self._storage[key])
+        value, params = gecaso.unpack(self._storage[key])
         return value
 
     async def set(self, key, value, **params):
-        self._storage[key] = self.pack(value, **params)
+        self._storage[key] = gecaso.pack(value, **params)
 
     async def remove(self, *keys):
         self._storage.remove(*keys)
