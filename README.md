@@ -62,7 +62,7 @@ Note that at the time, gecaso only supports versions of python that are >=3.5
 ##### Gecaso was created to be a simple solution that can be easily expanded to cover any needs of its users. Below is everything there is to know about using Gecaso.
 
 #### 1) "gecaso.cached" function
-This function is a wrapper that helps to set up cache for any synchronus or asynchronous function. It takes single positional argument, which must be an instance of class that is inherited from **BaseStorage**. It can also optionally be provided with a keyword argument **loop** which must be an instance of an event loop. Any keyword arguments provided besides **loop** will be passed to the **set** method of storage instance whenever it is being called.
+This function is a wrapper that helps to set up cache for any synchronus or asynchronous function. It takes single positional argument, which must be an instance of class that is inherited from **BaseStorage**. It can also optionally be provided with a keyword argument **loop** which must be an instance of an event loop. Has two keyword arguments: **\_loop** (event loop used by wrapper) and **\_hash_key** (default is "True"; if true, key will have fixed size of 65 symbols). Any additional keyword arguments provided will be passed to every specified storage with every **set** call.
 
 #### 2) "gecaso.BaseStorage" class
 Any storage provided to "cached" function should be inherited from this class. Base storage has 6 methods.
