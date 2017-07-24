@@ -29,7 +29,6 @@ def _cached(cache_storage, loop, hash_key, **params):
 
         async def wrapped_function(*args, **kwargs):
             key = make_key(function, *args, **kwargs)
-            print(key)
             try:
                 result = await cache_storage.get(key)
             except KeyError:
