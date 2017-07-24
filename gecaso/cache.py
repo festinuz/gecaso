@@ -4,28 +4,32 @@ from . import utils
 from . import storage
 
 
-def cached(cache_storage, loop=None, **params):
+def cached(cache_storage, _loop=None, _hash_key=True, **params):
     """ Wraps function to cache its value in cache_storage.
 
     Positional arguments:
     cache_storage -- subclass of gecaso.BaseStorage used to store cached data
 
     Keyword arguments:
-    loop -- instance of event loop. asyncio.get_event_loop called otherwise
+    _loop -- instance of event loop. asyncio.get_event_loop called otherwise
+    _hash_key -- if True, any generated key will be a cache of fixed size
     **params -- passed to cache_storage.set each time its called
     """
-    loop = loop or asyncio.get_event_loop()
+    loop = _loop or asyncio.get_event_loop()
     if not isinstance(cache_storage, storage.BaseStorage):
         raise ValueError('Provided storage is not subclass of base storage')
-    return _cached(cache_storage, loop, **params)
+    return _cached(cache_storage, loop, _hash_key, **params)
 
 
-def _cached(cache_storage, loop, **params):
+def _cached(cache_storage, loop, hash_key, **params):
+    make_key = utils.hash_key if hash_key else utils.make_key
+
     def wrapper(function):
         current_calls = dict()
 
         async def wrapped_function(*args, **kwargs):
-            key = utils.make_key(function, *args, **kwargs)
+            key = make_key(function, *args, **kwargs)
+            print(key)
             try:
                 result = await cache_storage.get(key)
             except KeyError:

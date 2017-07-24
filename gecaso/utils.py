@@ -1,5 +1,6 @@
 import pickle
 import inspect
+import hashlib
 import functools
 
 
@@ -11,6 +12,13 @@ class Namespace:
 def make_key(function, *args, **kwargs):
     name_and_args = (function.__qualname__,) + tuple(a for a in args)
     return functools._make_key(name_and_args, kwargs, False)
+
+
+def hash_key(function, *args, **kwargs):
+    function_hash = hashlib.md5(bytes(function.__qualname__, 'utf-8'))
+    params = str(functools._make_key(args, kwargs, False))
+    params_hash = hashlib.md5(bytes(params, 'utf-8'))
+    return '{}_{}'.format(function_hash.hexdigest(), params_hash.hexdigest())
 
 
 def wrap(function, wrapped_function):
