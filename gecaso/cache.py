@@ -11,7 +11,8 @@ def cached(cache_storage, _loop=None, _hash_key=True, **params):
     cache_storage -- subclass of gecaso.BaseStorage used to store cached data
 
     Keyword arguments:
-    loop -- instance of event loop. asyncio.get_event_loop called otherwise
+    _loop -- instance of event loop. asyncio.get_event_loop called otherwise
+    _hash_key -- if True, any generated key will be a cache of fixed size
     **params -- passed to cache_storage.set each time its called
     """
     loop = _loop or asyncio.get_event_loop()
