@@ -1,10 +1,34 @@
 # Gecaso
 
-[![PyPI version](https://badge.fury.io/py/gecaso.svg)](https://badge.fury.io/py/gecaso) ![master branch status](https://api.travis-ci.org/festinuz/gecaso.svg?branch=master)
+[![PyPI version](https://badge.fury.io/py/gecaso.svg)](https://badge.fury.io/py/gecaso) [![master branch status](https://api.travis-ci.org/festinuz/gecaso.svg?branch=master)](https://travis-ci.org/festinuz/gecaso)
+> Gecaso allows you to cache any function with ease.
 
-Gecaso provides you with the tools that help with creating cache for your specific task.
 
-### Examples
+## Table of contents
+
+- [Features](#features)
+- [Examples](#examples)
+    + [Using default gecaso storages](#using-default-gecaso-storages)
+    + [Creating custom storage](#creating-custom-storage)
+- [Installation](#installation)
+- [Usage Guide](#usage-guide)
+    + ["gecaso.cached" function](#gecasocached-function)
+    + ["gecaso.BaseStorage" class](#gecasobasestorage-class)
+    + [Helper functions](#helper-functions)
+    + [Default storages](#default-storages)
+  * [Storage creation](#storage-creation)
+
+
+## Features
+
+* **Simple outside**: Requires little to no code to start caching. Plug in and enjoy.
+* **Complex inside**: Worry not about dog-pile effect or the varying key size.
+* **Asyncio-ready**: Works out of the box for both functions and coroutines. Any back-end can be used asynchronously.
+* **Flexible Caching**: Data can be cached per function to different back-ends and with different parameters.
+* **Extensible Back-end**: Create a custom storage for any backend with minimal effort.
+
+
+## Examples
 
 #### Using default gecaso storages
 ```python
@@ -17,7 +41,7 @@ def long_and_boring_function(time_to_sleep):
     return f'I have slept for {time_to_sleep} second(s)!'
 ```
 
-#### Creating new storage to fit your task
+#### Creating custom storage
 Lets say you want to cache the result of some of your functions using Redis. All you need to do is write a simple class in which you specify the steps for setting and getting data from redis.
 
 1) Create a Redis storage:
@@ -59,12 +83,12 @@ Install gecaso with pip:
 Note that at the time, gecaso only supports versions of python that are >=3.5
 
 ## Usage Guide
-##### Gecaso was created to be a simple solution that can be easily expanded to cover any needs of its users. Below is everything there is to know about using Gecaso.
+Gecaso was created to be a simple solution that can be easily extended to cover any needs of its users. Below is everything there is to know about using Gecaso.
 
-#### 1) "gecaso.cached" function
+#### "gecaso.cached" function
 This function is a wrapper that helps to set up cache for any synchronus or asynchronous function. It takes single positional argument, which must be an instance of class that is inherited from **BaseStorage**. It can also optionally be provided with a keyword argument **loop** which must be an instance of an event loop. Has two keyword arguments: **\_loop** (event loop used by wrapper) and **\_hash_key** (default is "True"; if true, key will have fixed size of 65 symbols). Any additional keyword arguments provided will be passed to every specified storage with every **set** call.
 
-#### 2) "gecaso.BaseStorage" class
+#### "gecaso.BaseStorage" class
 Any storage provided to "cached" function should be inherited from this class. Base storage has 6 methods.
 
 * **get(self, key)**:  Abstract method that should be overridden. Must be asynchronous. MUST raise KeyError if key is not present in storage. If data was packed using **gecaso.pack** function before being stored, it must be unpacked using **gecaso.unpack** function.
@@ -74,18 +98,18 @@ Any storage provided to "cached" function should be inherited from this class. B
 * **remove(self, \*keys)**: Abstract method that should be overridden. Must be asynchronous. Should delete every key that is passed in *keys* parameter and exists in storage.
 
 
-#### 3) Helper functions
+#### Helper functions
 * **gecaso.pack(value, \*\*params)**: Returns representation of object with fields named *data* and *params* as bytes object. Useful when creating a custom storage as it allows to store almost anything as 'bytes'.
 
 * **gecaso.unpack(value)**: Unpacks bytes object that was packed with **pack** method and returns *tuple(data, params)*.
 
 
-#### 4) Storages provided by gecaso library
+#### Default storages
 * **gecaso.MemoryStorage** storages all the data in RAM. Can be used as a default storage.
 * **gecaso.LRUStorage** is a simplified implementation that provides LRU cache functionality. Storage passed to its *\_\_init\_\_()* method will be used used to store values. This effectively allows to wrap any preexisting storage in *gecaso.LRUStorage* to get LRU cache functionality for that storage.
 
 ### Storage creation
-##### The process of using gecaso library usually includes creating a storage that fits your specific task the most. Here is a step by step example that should help you understand this process.
+The process of using gecaso library usually includes creating a storage that fits your specific task the most. Here is a step by step example that should help you understand this process.
 
 Lets say that we want to have a simple in-memory cache. Here are the steps we would take:
 
